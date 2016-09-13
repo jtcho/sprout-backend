@@ -1,0 +1,5 @@
+# Routes
+# This file defines all of the application routes. Higher priority routes are listed first.
+# ~ ~ ~
+
+GET     /rand       edu.upenn.sprout.controllers.RandomController.random()
