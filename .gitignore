@@ -2,6 +2,12 @@ build/
 logs/
 .idea/
 .gradle/
+gradle/
+gradlew
+gradlew.bat
 *.ipr
 *.iml
 *.iws
+*.ids
+out/
+target/

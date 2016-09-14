@@ -2,4 +2,6 @@
 # This file defines all of the application routes. Higher priority routes are listed first.
 # ~ ~ ~
 
-GET     /rand       edu.upenn.sprout.controllers.RandomController.random()
+GET     /api/rand           @edu.upenn.sprout.controllers.RandomController.random()
+POST    /api/account        @edu.upenn.sprout.controllers.AccountController.createAccount()
+GET     /api/account/:id    @edu.upenn.sprout.controllers.AccountController.getAccount(id : Long)

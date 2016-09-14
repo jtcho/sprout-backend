@@ -15,7 +15,7 @@ public class RandomController extends Controller {
   @Inject
   public RandomController() {}
 
-  public static Result random() {
+  public Result random() {
     return ok(toJson(Math.random()));
   }
 
