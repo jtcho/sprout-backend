@@ -11,3 +11,4 @@ gradlew.bat
 *.ids
 out/
 target/
+.DS_Store
