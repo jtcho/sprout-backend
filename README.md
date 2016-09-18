@@ -9,6 +9,8 @@ Built using Play Framework and Gradle.
 
 After cloning the repository, `cd` into the project directory.
 
+_For the time being, this codebase relies on Amazon AWS DynamoDB. You can run the code on your local machine if you also have a version of DynamoDB hosted locally, as well. See the DynamoDB section for further instructions._
+
 To launch the application, run `gradle run`. 
 
 To launch the application with hotswapping, run `gradle -t run`.
@@ -35,4 +37,12 @@ In IntelliJ, create a new **Remote** configuration and ensure that the Host is s
 
 Save, and start the debug configuration.
 
+## Setting up Amazon DynamoDB Locally
 
+To set up Amazon DynamoDB locally, follow the instructions in the [Amazon AWS Documentation](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html).
+
+After downloading the `.jar` and other files, you can run
+
+```java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -inMemory```
+
+to start the database locally.

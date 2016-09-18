@@ -1,48 +1,57 @@
-//package edu.upenn.sprout.controllers;
-//
-//import edu.upenn.sprout.db.Account;
-//import play.db.jpa.JPA;
-//import play.db.jpa.Transactional;
-//import play.mvc.Controller;
-//import play.mvc.Result;
-//
-//import javax.inject.Inject;
-//import javax.persistence.EntityManager;
-//
-///**
-// */
-//public class AccountController extends Controller {
-//
-//  public AccountController() {
-//  }
-//
-//  @Transactional
-//  public Result createAccount() {
-//    String email = request().body().asJson().get("email").asText();
-//    try {
-//      Account account = new Account(email);
-//      EntityManager em = JPA.em();
-//      em.persist(account);
-//      em.flush();
-//      return created(account.toString());
-//    } catch (Exception e) {
-//      System.err.println("Received internal server error with message: " + e);
-//      return internalServerError(e.toString());
-//    }
-//  }
-//
-//  @Transactional
-//  public Result getAccount(Long id) {
-//    try {
-//      Account account = JPA.em().find(Account.class, id);
-//      if (account == null) {
-//        return notFound("Entity was not found.");
-//      }
-//      return ok(account.toString());
-//    } catch (Exception e) {
-//      System.err.println("Received internal server error with message: " + e);
-//      return internalServerError(e.toString());
-//    }
-//  }
-//
-//}
+package edu.upenn.sprout.controllers;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import edu.upenn.sprout.services.AccountService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import play.libs.F;
+import play.mvc.Controller;
+import play.mvc.Result;
+
+import javax.inject.Inject;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+/**
+ * @author jtcho
+ * @version 2016.09.17
+ */
+public class AccountController extends Controller {
+
+  private final Logger LOG = LoggerFactory.getLogger(AccountController.class);
+  private final AccountService accountService;
+
+  @Inject
+  public AccountController(AccountService accountService) {
+    this.accountService = accountService;
+  }
+
+  public F.Promise<Result> create() {
+    JsonNode node = request().body().asJson();
+    String email = node.get("email").asText();
+    String name = node.get("name").asText();
+
+    return asPromise(accountService.createAccount(email, name));
+  }
+
+  /**
+   *
+   * @param future
+   * @param <T>
+   * @return
+   */
+  public static <T> F.Promise<T> asPromise(CompletableFuture<T> future) {
+    F.RedeemablePromise<T> promise = F.RedeemablePromise.empty();
+    future.whenCompleteAsync((res, err) -> {
+      if (err != null) {
+        promise.failure(err);
+      }
+      else {
+        promise.success(res);
+      }
+    });
+    return promise;
+  }
+
+}
