@@ -8,10 +8,9 @@ import play.libs.F;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import static edu.upenn.sprout.util.FutureUtils.asPromise;
+
 import javax.inject.Inject;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 /**
  * @author jtcho
@@ -27,31 +26,17 @@ public class AccountController extends Controller {
     this.accountService = accountService;
   }
 
+  /**
+   * Creates an instance of an Account and saves it in the database.
+   *
+   * @return an unresolved promise enclosing the result of the query
+   */
   public F.Promise<Result> create() {
     JsonNode node = request().body().asJson();
     String email = node.get("email").asText();
     String name = node.get("name").asText();
 
     return asPromise(accountService.createAccount(email, name));
-  }
-
-  /**
-   *
-   * @param future
-   * @param <T>
-   * @return
-   */
-  public static <T> F.Promise<T> asPromise(CompletableFuture<T> future) {
-    F.RedeemablePromise<T> promise = F.RedeemablePromise.empty();
-    future.whenCompleteAsync((res, err) -> {
-      if (err != null) {
-        promise.failure(err);
-      }
-      else {
-        promise.success(res);
-      }
-    });
-    return promise;
   }
 
 }
