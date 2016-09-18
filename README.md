@@ -46,3 +46,13 @@ After downloading the `.jar` and other files, you can run
 ```java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -inMemory```
 
 to start the database locally.
+
+To interact with the locally running database, you may use the `awscli` tool, which may be installed via `pip`.
+
+```sudo -H pip install awscli --upgrade --ignore-installed six```
+
+You can then interact with your local instance, e.g. 
+
+```aws dynamodb scan --table-name "Accounts" --endpoint-url http://localhost:8000```
+
+The full CLI reference may be found [here](http://docs.aws.amazon.com/cli/latest/reference/dynamodb/index.html).
