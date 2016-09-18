@@ -5,6 +5,8 @@ import play.libs.F;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * Class with Future utility functions.
+ *
  * @author jtcho
  * @version 2016.09.17
  */
@@ -18,6 +20,8 @@ public class FutureUtils {
    * controllers until version 2.5.x.
    *
    * This is a temporary solution until the Gradle Play plugin is updated.
+   *
+   * Shamelessly copied from http://carminedimascio.com/2015/05/java-8-completablefuture-to-play-framework-f-promise/.
    *
    * @param future the future to wrap
    * @param <T> the enclosed type in the future

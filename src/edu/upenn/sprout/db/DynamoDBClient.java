@@ -83,10 +83,12 @@ public class DynamoDBClient {
   }
 
   /**
+   * Issues an asynchronous request to put an item into a table. Replaces an existing item
+   * if the primary keys are the same.
    *
-   * @param tableName
-   * @param model
-   * @return
+   * @param tableName the table name
+   * @param model the data model to insert
+   * @return a future for the task
    */
   public CompletableFuture<PutItemResult> putItem(String tableName, Model model) {
     PutItemRequest putItemRequest = new PutItemRequest().withTableName(tableName)

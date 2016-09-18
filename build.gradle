@@ -20,6 +20,7 @@ dependencies {
   play "org.webjars:google-diff-match-patch:20121119"
   play "com.amazonaws:aws-java-sdk:1.11.34"
   play "com.fasterxml.uuid:java-uuid-generator:3.1.4"
+  play "org.apache.kafka:kafka_2.10:0.10.0.1"
 }
 
 model {

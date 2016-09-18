@@ -3,7 +3,6 @@ package edu.upenn.sprout.models;
 import com.fasterxml.uuid.Generators;
 import edu.upenn.sprout.models.data.StringField;
 
-import javax.inject.Inject;
 import java.util.UUID;
 
 /**
