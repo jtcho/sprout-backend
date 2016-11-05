@@ -26,7 +26,7 @@ dependencies {
 model {
   components {
     play {
-      platform play: '2.4.0', scala: '2.11'
+      platform play: '2.5.0', scala: '2.11'
       sources {
         java {
           source.srcDir "src"
