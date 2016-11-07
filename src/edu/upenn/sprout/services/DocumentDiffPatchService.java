@@ -14,6 +14,7 @@ import play.inject.ApplicationLifecycle;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,9 +39,13 @@ public class DocumentDiffPatchService {
    */
   private Map<String, DocumentStore> shadowStores;
   /**
-   * Queue of edit events to process.
+   * Queue of shadow copy edit events to process.
    */
-  private ConcurrentLinkedQueue<EditEvent> editQueue;
+  private ConcurrentLinkedQueue<EditEvent> shadowEditQueue;
+  /**
+   * Queue of master copy edit events to process.
+   */
+  private ConcurrentLinkedQueue<EditEvent> masterEditQueue;
 
   private static DiffMatchPatch dmp = new DiffMatchPatch();
 
@@ -50,29 +55,33 @@ public class DocumentDiffPatchService {
   protected DocumentDiffPatchService(ApplicationLifecycle lifecycle) {
     masterCopies = new HashMap<>();
     shadowStores = new HashMap<>();
-    editQueue = new ConcurrentLinkedQueue<>();
+    shadowEditQueue = new ConcurrentLinkedQueue<>();
+    masterEditQueue = new ConcurrentLinkedQueue<>();
 
-    ShadowCopyHandler shadowDaemon = new ShadowCopyHandler(this, editQueue);
-    Thread shadowThread = new Thread(shadowDaemon);
+    DocumentEditHandler editDaemon = new DocumentEditHandler(this, shadowEditQueue, masterEditQueue);
+    Thread shadowThread = new Thread(editDaemon);
     shadowThread.start();
-    lifecycle.addStopHook(() -> CompletableFuture.runAsync(shadowDaemon::shutdown));
+    lifecycle.addStopHook(() -> CompletableFuture.runAsync(editDaemon::shutdown));
 
     // Please do delete these... just for sample testing.
     DocumentStore exampleStore = new DocumentStore();
     Document masterCopy = new Document("pineapple", 0, "TITLE", "barbaz");
-    exampleStore.registerUser("jtcho", masterCopy);
+    exampleStore.registerUser("jtcho", "Plank", "pineapple", masterCopy);
     shadowStores.put("pineapple", exampleStore);
+    masterCopies.put("pineapple", masterCopy);
   }
 
   /**
    * Given a list of diffs and the base text, computes patches to be applied to the base text.
    *
-   * @param diffs
-   * @param baseText
    * @return a list of patches
    */
-  public static LinkedList<Patch> makePatchesFromDiffs(List<Diff> diffs, String baseText) {
+  private static LinkedList<Patch> makePatchesFromDiffs(List<Diff> diffs, String baseText) {
     return dmp.patch_make(baseText, new LinkedList<>(diffs));
+  }
+
+  public static LinkedList<Diff> makeDiffsFromText(String text1, String text2) {
+    return dmp.diff_main(text1, text2);
   }
 
   /**
@@ -83,7 +92,7 @@ public class DocumentDiffPatchService {
    * @return a pair consisting of the result of the patch and a list of booleans corresponding to which
    * patches were successfully applied
    */
-  public static Pair<String, List<Boolean>> applyPatches(LinkedList<Patch> patches, String baseText) {
+  private static Pair<String, List<Boolean>> applyPatches(LinkedList<Patch> patches, String baseText) {
     Object results[] = dmp.patch_apply(patches, baseText);
     boolean[] patchResults = (boolean [])results[1];
     List<Boolean> patchResultsWrapper = new ArrayList<>();
@@ -93,29 +102,55 @@ public class DocumentDiffPatchService {
     return new Pair<>((String) results[0], patchResultsWrapper);
   }
 
+  public static Pair<String, List<Boolean>> applyDiffs(List<Diff> diffs, String baseText) {
+    return applyPatches(makePatchesFromDiffs(diffs, baseText), baseText);
+  }
+
   /**
-   * Applies an edit to a stored document.
-   *
-   * @param documentID
-   * @param editEvent
+   * Applies an edit to a stored shadow document copy.
    */
   protected void applyShadowEdit(String documentID, EditEvent editEvent) {
     DocumentStore store = shadowStores.get(documentID);
     String author = editEvent.getAuthor();
-    List<Diff> diffs = editEvent.getDiffs().stream().map(DocumentDiffPatchService::convertDiff).collect(Collectors.toList());
+    List<Diff> diffs = convertDiffs(editEvent.getDiffs());
     Document updatedResult = store.applyEdit(author, diffs);
-    LOG.info("Applied edit to document [" + documentID + "] and got updated result: " + updatedResult.getContent());
+    LOG.info("Applied edit to " + author + "'s shadow copy of document [" + documentID +
+        "] and got updated result: " + updatedResult.getContent());
+    // Compute diff against master document.
+    Document masterCopy = masterCopies.get(documentID);
+    List<Diff> nextDiffs = makeDiffsFromText(masterCopy.getContent(), updatedResult.getContent());
+    EditEvent nextEvent = new EditEvent(author, editEvent.getApplicationId(), documentID, nextDiffs);
+    masterEditQueue.add(nextEvent);
+  }
+
+  protected void applyMasterEdit(String documentID, EditEvent editEvent) {
+    Document masterCopy = masterCopies.get(documentID);
+    String author = editEvent.getAuthor();
+    List<Diff> diffs = editEvent.getConvertedDiffs();
+    Pair<String, List<Boolean>> results = applyDiffs(diffs, masterCopy.getContent());
+    Document updatedCopy = new Document(masterCopy.getId(), masterCopy.getRevisionNumber() + 1, masterCopy.getTitle(), results.getFirst());
+    LOG.info("Applied edit to " + author + "'s master copy of document [" + documentID +
+        "] and got updated result: " + updatedCopy.getContent());
+    // Compute all diffs between server copy and all other copies.
+    DocumentStore documentStore = shadowStores.get(documentID);
   }
 
   /**
    * Enqueues an edit event to be processed by the shadow copy handler.
-   *
-   * @param editEvent
    */
   public void enqueueShadowEdit(EditEvent editEvent) {
-    editQueue.add(editEvent);
+    shadowEditQueue.add(editEvent);
   }
 
+  public static List<Diff> convertDiffs(Collection<edu.upenn.sprout.api.models.Diff> diffs) {
+    return diffs.stream().map(DocumentDiffPatchService::convertDiff).collect(Collectors.toList());
+  }
+
+  /**
+   * Converts the serialized Diff from the request binding to the DiffPatch format.
+   *
+   * @return the converted object
+   */
   public static Diff convertDiff(edu.upenn.sprout.api.models.Diff requestDiff) {
     return new Diff(requestDiff.getOp(), requestDiff.getText());
   }
