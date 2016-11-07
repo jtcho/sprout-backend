@@ -1,6 +1,6 @@
 package edu.upenn.sprout.services;
 
-import edu.upenn.sprout.api.models.EditEvent;
+import edu.upenn.sprout.api.models.InternalEditEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +18,11 @@ public class DocumentEditHandler implements Runnable {
 
   private DocumentDiffPatchService service;
   private boolean stopped = false;
-  private Queue<EditEvent> shadowEditQueue;
-  private Queue<EditEvent> masterEditQueue;
+  private Queue<InternalEditEvent> shadowEditQueue;
+  private Queue<InternalEditEvent> masterEditQueue;
 
-  public DocumentEditHandler(DocumentDiffPatchService service, Queue<EditEvent> shadowEditQueue, Queue<EditEvent> masterEditQueue) {
+  public DocumentEditHandler(DocumentDiffPatchService service, Queue<InternalEditEvent> shadowEditQueue,
+                             Queue<InternalEditEvent> masterEditQueue) {
     this.service = service;
     this.shadowEditQueue = shadowEditQueue;
     this.masterEditQueue = masterEditQueue;
@@ -40,12 +41,12 @@ public class DocumentEditHandler implements Runnable {
 
     while (! stopped) {
       if (! shadowEditQueue.isEmpty()) {
-        EditEvent event = shadowEditQueue.poll();
+        InternalEditEvent event = shadowEditQueue.poll();
         LOG.info("Processing shadow edit event: " + event);
         service.applyShadowEdit(event.getDocumentId(), event);
       }
       if (! masterEditQueue.isEmpty()) {
-        EditEvent event = masterEditQueue.poll();
+        InternalEditEvent event = masterEditQueue.poll();
         LOG.info("Processing master edit event: " + event);
         service.applyMasterEdit(event.getDocumentId(), event);
       }

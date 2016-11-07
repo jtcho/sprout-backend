@@ -18,6 +18,13 @@ public class Diff {
   @Required
   protected String text;
 
+  public Diff() {}
+
+  public Diff(Operation operation, String text) {
+    this.operation = operation;
+    this.text = text;
+  }
+
   public void setOp(String operation) {
     switch (operation) {
       case "+":

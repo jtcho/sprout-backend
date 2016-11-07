@@ -1,8 +1,6 @@
 package edu.upenn.sprout.doc;
 
 import com.sksamuel.diffpatch.DiffMatchPatch.Diff;
-import com.sksamuel.diffpatch.DiffMatchPatch.Patch;
-import edu.upenn.sprout.api.models.EditEvent;
 import edu.upenn.sprout.services.DocumentDiffPatchService;
 import edu.upenn.sprout.utils.Pair;
 
@@ -21,7 +19,7 @@ import java.util.Set;
 public class DocumentStore {
 
   private Map<String, Document> shadowCopies;
-  private Map<String, EditEvent> eventsToPush;
+  private Map<String, List<Diff>> eventsToPush;
 
   public DocumentStore() {
     shadowCopies = new HashMap<>();
@@ -34,16 +32,13 @@ public class DocumentStore {
 
   /**
    * Registers a user with this particular document.
-   *
-   * @param author
-   * @param copy
    */
-  public void registerUser(String author, String applicationId, String documentId, Document copy) {
+  public void registerUser(String author, Document copy) {
     if (shadowCopies.containsKey(author)) {
       throw new IllegalStateException("Author " + author + " is already registered.");
     }
     shadowCopies.put(author, copy);
-//    eventsToPush.put(author, new EditEvent(author, applicationId, documentId, new LinkedList<>()));
+    eventsToPush.put(author, new LinkedList<>());
   }
 
   /**
@@ -54,23 +49,22 @@ public class DocumentStore {
    * @param masterCopy
    */
   public void enqueueChangesForClient(String author, Document masterCopy) {
-//    shadowCopies.keySet().stream()
-//        .filter(user -> ! user.equals(author))
-//        .map(user -> {
-//          Document shadowCopy = shadowCopies.get(user);
-//          List<Diff> diffs = DocumentDiffPatchService.makeDiffsFromText(shadowCopy.getContent(), masterCopy.getContent());
-//          EditEvent nextEvent
-//          return new Pair<>(user, diffs);
-//        })
-//        .forEach(pair -> eventsToPush.get(pair.getFirst()).addAll(pair.getSecond()));
+    shadowCopies.keySet().stream()
+        .filter(user -> ! user.equals(author))
+        .map(user -> {
+          Document shadowCopy = shadowCopies.get(user);
+          List<Diff> diffs = DocumentDiffPatchService.makeDiffsFromText(shadowCopy.getContent(), masterCopy.getContent());
+          return new Pair<>(user, diffs);
+        })
+        .forEach(pair -> eventsToPush.get(pair.getFirst()).addAll(pair.getSecond()));
   }
 
-  public EditEvent getQueuedDiffs(String author) {
+  public List<Diff> getQueuedDiffs(String author) {
     return eventsToPush.get(author);
   }
 
   public void flushQueuedDiffs(String author) {
-    eventsToPush.remove(author);
+    eventsToPush.get(author).clear();
   }
 
   public Set<String> getRegisteredUsers() {
