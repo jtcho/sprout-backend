@@ -1,17 +1,10 @@
 <!--
-  ~ Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+  ~ Copyright (C) 2009-2016 Lightbend Inc. <https://www.lightbend.com>
   -->
-<!-- The default logback configuration that Play uses if no other configuration is provided -->
+<!-- The default logback configuration that Play uses in dev mode if no other configuration is provided -->
 <configuration>
 
-    <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
-
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${application.home}/logs/application.log</file>
-        <encoder>
-            <pattern>%date [%level] from %logger in %thread - %message%n%xException</pattern>
-        </encoder>
-    </appender>
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -19,26 +12,15 @@
         </encoder>
     </appender>
 
-    <appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="FILE" />
-    </appender>
+    <logger name="play" level="ERROR" />
+    <logger name="edu.upenn.sprout" level="INFO" />
 
-    <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="STDOUT" />
-    </appender>
-
-    <logger name="play" level="INFO" />
-    <logger name="edu.upenn.sprout" level="DEBUG" />
-
-    <!-- Off these ones as they are annoying, and anyway we manage configuration ourself -->
-    <logger name="com.avaje.ebean.config.PropertyMapLoader" level="OFF" />
-    <logger name="com.avaje.ebeaninternal.server.core.XmlConfigLoader" level="OFF" />
-    <logger name="com.avaje.ebeaninternal.server.lib.BackgroundThread" level="OFF" />
+    <!-- Disable DEBUG messages from Netty. -->
+    <logger name= "io.netty" level="ERROR" />
     <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
 
-    <root level="WARN">
-        <appender-ref ref="ASYNCFILE" />
-        <appender-ref ref="ASYNCSTDOUT" />
+    <root level="ERROR">
+        <appender-ref ref="STDOUT" />
     </root>
 
 </configuration>

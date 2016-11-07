@@ -37,22 +37,14 @@ In IntelliJ, create a new **Remote** configuration and ensure that the Host is s
 
 Save, and start the debug configuration.
 
-## Setting up Amazon DynamoDB Locally
+## Setting up PostgreSQL Locally
 
-To set up Amazon DynamoDB locally, follow the instructions in the [Amazon AWS Documentation](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html).
+PostgreSQL may be installed using `brew`.
+```
+brew install postgresql
+```
 
-After downloading the `.jar` and other files, you can run
-
-```java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -inMemory```
-
-to start the database locally.
-
-To interact with the locally running database, you may use the `awscli` tool, which may be installed via `pip`.
-
-```sudo -H pip install awscli --upgrade --ignore-installed six```
-
-You can then interact with your local instance, e.g. 
-
-```aws dynamodb scan --table-name "Accounts" --endpoint-url http://localhost:8000```
-
-The full CLI reference may be found [here](http://docs.aws.amazon.com/cli/latest/reference/dynamodb/index.html).
+Afterwards, PostgreSQL may be started using the command:
+```
+pg_ctl -D /usr/local/var/postgres start
+```

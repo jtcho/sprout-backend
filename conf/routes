@@ -3,4 +3,4 @@
 # ~ ~ ~
 
 GET     /api/rand           @edu.upenn.sprout.controllers.RandomController.random()
-POST    /api/account        @edu.upenn.sprout.controllers.AccountController.create()
+POST    /api/edit           @edu.upenn.sprout.controllers.EditController.handleEditEvent()

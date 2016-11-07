@@ -17,23 +17,36 @@ repositories {
 }
 
 dependencies {
-  play "org.webjars:google-diff-match-patch:20121119"
-  play "com.amazonaws:aws-java-sdk:1.11.34"
+//  play "org.webjars:google-diff-match-patch:20121119"
+  play "com.sksamuel.diff:diff:1.1.11"
   play "com.fasterxml.uuid:java-uuid-generator:3.1.4"
-  play "org.apache.kafka:kafka_2.10:0.10.0.1"
+  play "org.apache.kafka:kafka_2.10:0.10.0.1" exclude module: 'slf4j-log4j12'
+  play "com.typesafe.play:play-jdbc-api_2.11:2.5.9"
+  play "com.typesafe.play:play-logback_2.11:2.5.9"
+  play "com.typesafe.play:play-java_2.11:2.5.9"
+  play "ch.qos.logback:logback-classic:1.1.7"
+  play "junit:junit:4.12"
+  play "org.mockito:mockito-all:1.10.19"
 }
 
 model {
   components {
     play {
-      platform play: '2.5.0', scala: '2.11'
+      platform play: '2.5.9', scala: '2.11'
       sources {
         java {
           source.srcDir "src"
         }
+        resources {
+          source.srcDir "conf"
+        }
       }
     }
   }
+}
+
+configurations.all {
+//  exclude module: 'log4j'
 }
 
 if (project.hasProperty('debug')) {
