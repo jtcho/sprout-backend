@@ -60,7 +60,11 @@ public class DocumentStore {
   }
 
   public List<Diff> getQueuedDiffs(String author) {
-    return eventsToPush.get(author);
+    if (eventsToPush.containsKey(author)) {
+      return eventsToPush.get(author);
+    } else {
+      throw new IllegalArgumentException("Author " + author + " not registered to edit document.");
+    }
   }
 
   public void flushQueuedDiffs(String author) {

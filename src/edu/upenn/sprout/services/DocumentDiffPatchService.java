@@ -73,6 +73,15 @@ public class DocumentDiffPatchService {
   }
 
   /**
+   * TODO
+   * @param documentId
+   * @return
+   */
+  public boolean isValid(String documentId) {
+    return masterCopies.containsKey(documentId);
+  }
+
+  /**
    * Given a list of diffs and the base text, computes patches to be applied to the base text.
    *
    * @return a list of patches
@@ -153,6 +162,12 @@ public class DocumentDiffPatchService {
     documentStore.enqueueChangesForClient(author, updatedCopy);
   }
 
+  /**
+   * TODO
+   * @param documentId
+   * @param authorId
+   * @return
+   */
   public List<Diff> getQueuedDiffs(String documentId, String authorId) {
     return DiffUtils.convertInternalDiffs(shadowStores.get(documentId).getQueuedDiffs(authorId));
   }

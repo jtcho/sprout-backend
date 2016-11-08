@@ -1,5 +1,7 @@
 package edu.upenn.sprout.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sksamuel.diffpatch.DiffMatchPatch;
 import edu.upenn.sprout.api.models.Diff;
 import edu.upenn.sprout.api.models.EditEvent;
@@ -8,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.data.Form;
 import play.data.FormFactory;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
@@ -31,9 +34,19 @@ public class EditController extends Controller {
   }
 
   public Result getEdits(String docId, String authorId) {
-    LOG.info("Fetching queued edits for document [" + docId + "] for user " + authorId + ".");
-    List<Diff> diffs = service.getQueuedDiffs(docId, authorId);
-    return ok();
+    if (service.isValid(docId)) {
+      LOG.info("Fetching queued edits for document [" + docId + "] for user " + authorId + ".");
+      try {
+        List<Diff> diffs = service.getQueuedDiffs(docId, authorId);
+        ArrayNode encodedDiffs = Json.newArray();
+        diffs.stream().map(Diff::encode).forEach(encodedDiffs::add);
+        return ok(encodedDiffs);
+      } catch (IllegalArgumentException e) {
+        return badRequest(e.getMessage());
+      }
+    } else {
+      return notFound("Document with id " + docId + " not found.");
+    }
   }
 
   public Result postEdit() {
