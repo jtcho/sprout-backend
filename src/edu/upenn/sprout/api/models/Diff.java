@@ -56,14 +56,14 @@ public class Diff {
     return text;
   }
 
-  private static String encodeOperation(Operation operation) {
+  private static int encodeOperation(Operation operation) {
     switch (operation) {
       case DELETE:
-        return "-1";
+        return -1;
       case INSERT:
-        return "1";
+        return 1;
       case EQUAL:
-        return "0";
+        return 0;
       default:
         throw new IllegalStateException("Invalid operation type encountered.");
     }
