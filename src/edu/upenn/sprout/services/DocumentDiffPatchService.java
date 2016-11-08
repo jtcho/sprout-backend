@@ -1,12 +1,13 @@
 package edu.upenn.sprout.services;
 
 import com.sksamuel.diffpatch.DiffMatchPatch;
-import com.sksamuel.diffpatch.DiffMatchPatch.Diff;
 import com.sksamuel.diffpatch.DiffMatchPatch.Patch;
+import edu.upenn.sprout.api.models.Diff;
 import edu.upenn.sprout.api.models.EditEvent;
 import edu.upenn.sprout.api.models.InternalEditEvent;
 import edu.upenn.sprout.doc.Document;
 import edu.upenn.sprout.doc.DocumentStore;
+import edu.upenn.sprout.utils.DiffUtils;
 import edu.upenn.sprout.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,7 @@ public class DocumentDiffPatchService {
     DocumentStore exampleStore = new DocumentStore();
     Document masterCopy = new Document("pineapple", 0, "TITLE", "barbaz");
     exampleStore.registerUser("jtcho", masterCopy);
+    exampleStore.registerUser("igorpo", masterCopy);
     shadowStores.put("pineapple", exampleStore);
     masterCopies.put("pineapple", masterCopy);
   }
@@ -75,14 +77,14 @@ public class DocumentDiffPatchService {
    *
    * @return a list of patches
    */
-  private static LinkedList<Patch> makePatchesFromDiffs(List<Diff> diffs, String baseText) {
+  private static LinkedList<Patch> makePatchesFromDiffs(List<DiffMatchPatch.Diff> diffs, String baseText) {
     return dmp.patch_make(baseText, new LinkedList<>(diffs));
   }
 
   /**
    * Computes a sequential list of diffs between the input strings.
    */
-  public static LinkedList<Diff> makeDiffsFromText(String text1, String text2) {
+  public static LinkedList<DiffMatchPatch.Diff> makeDiffsFromText(String text1, String text2) {
     return dmp.diff_main(text1, text2);
   }
 
@@ -111,7 +113,7 @@ public class DocumentDiffPatchService {
    * @return a pair consisting of the result of the patch and a list of booleans corresponding to which
    * patches were successfully applied
    */
-  public static Pair<String, List<Boolean>> applyDiffs(List<Diff> diffs, String baseText) {
+  public static Pair<String, List<Boolean>> applyDiffs(List<DiffMatchPatch.Diff> diffs, String baseText) {
     return applyPatches(makePatchesFromDiffs(diffs, baseText), baseText);
   }
 
@@ -120,17 +122,17 @@ public class DocumentDiffPatchService {
    * and then computes the diff with respect to the master copy
    * and enqueues the changes to be merged in to master.
    */
-  protected void applyShadowEdit(String documentID, InternalEditEvent editEvent) {
-    DocumentStore store = shadowStores.get(documentID);
+  protected void applyShadowEdit(String documentId, InternalEditEvent editEvent) {
+    DocumentStore store = shadowStores.get(documentId);
     String author = editEvent.getAuthor();
-    List<Diff> diffs = editEvent.getDiffs();
+    List<DiffMatchPatch.Diff> diffs = editEvent.getDiffs();
     Document updatedResult = store.applyEdit(author, diffs);
-    LOG.info("Applied edit to " + author + "'s shadow copy of document [" + documentID +
+    LOG.info("Applied edit to " + author + "'s shadow copy of document [" + documentId +
         "] and got updated result: " + updatedResult.getContent());
     // Compute diff against master document.
-    Document masterCopy = masterCopies.get(documentID);
-    List<Diff> nextDiffs = makeDiffsFromText(masterCopy.getContent(), updatedResult.getContent());
-    InternalEditEvent nextEvent = new InternalEditEvent(author, editEvent.getApplicationId(), documentID, nextDiffs);
+    Document masterCopy = masterCopies.get(documentId);
+    List<DiffMatchPatch.Diff> nextDiffs = makeDiffsFromText(masterCopy.getContent(), updatedResult.getContent());
+    InternalEditEvent nextEvent = new InternalEditEvent(author, editEvent.getApplicationId(), documentId, nextDiffs);
     masterEditQueue.add(nextEvent);
   }
 
@@ -139,16 +141,20 @@ public class DocumentDiffPatchService {
    * and then computes diffs with respect to all other editors of the document
    * and enqueues the changes to be pushed to clients.
    */
-  protected void applyMasterEdit(String documentID, InternalEditEvent editEvent) {
-    Document masterCopy = masterCopies.get(documentID);
+  protected void applyMasterEdit(String documentId, InternalEditEvent editEvent) {
+    Document masterCopy = masterCopies.get(documentId);
     String author = editEvent.getAuthor();
-    List<Diff> diffs = editEvent.getDiffs();
+    List<DiffMatchPatch.Diff> diffs = editEvent.getDiffs();
     Pair<String, List<Boolean>> results = applyDiffs(diffs, masterCopy.getContent());
     Document updatedCopy = new Document(masterCopy.getId(), masterCopy.getRevisionNumber() + 1, masterCopy.getTitle(), results.getFirst());
-    LOG.info("Applied edit to " + author + "'s master copy of document [" + documentID +
+    LOG.info("Applied edit to " + author + "'s master copy of document [" + documentId +
         "] and got updated result: " + updatedCopy.getContent());
-    DocumentStore documentStore = shadowStores.get(documentID);
+    DocumentStore documentStore = shadowStores.get(documentId);
     documentStore.enqueueChangesForClient(author, updatedCopy);
+  }
+
+  public List<Diff> getQueuedDiffs(String documentId, String authorId) {
+    return DiffUtils.convertInternalDiffs(shadowStores.get(documentId).getQueuedDiffs(authorId));
   }
 
   /**

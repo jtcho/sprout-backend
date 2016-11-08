@@ -25,15 +25,15 @@ public class Diff {
     this.text = text;
   }
 
-  public void setOp(String operation) {
+  public void setOp(int operation) {
     switch (operation) {
-      case "+":
+      case 1:
         this.operation = Operation.INSERT;
         break;
-      case "-":
+      case -1:
         this.operation = Operation.DELETE;
         break;
-      case "=":
+      case 0:
         this.operation = Operation.EQUAL;
         break;
       default:

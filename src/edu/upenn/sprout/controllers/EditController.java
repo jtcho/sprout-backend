@@ -1,5 +1,7 @@
 package edu.upenn.sprout.controllers;
 
+import com.sksamuel.diffpatch.DiffMatchPatch;
+import edu.upenn.sprout.api.models.Diff;
 import edu.upenn.sprout.api.models.EditEvent;
 import edu.upenn.sprout.services.DocumentDiffPatchService;
 import org.slf4j.Logger;
@@ -10,6 +12,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * @author jtcho
@@ -27,7 +30,13 @@ public class EditController extends Controller {
     this.service = service;
   }
 
-  public Result handleEditEvent() {
+  public Result getEdits(String docId, String authorId) {
+    LOG.info("Fetching queued edits for document [" + docId + "] for user " + authorId + ".");
+    List<Diff> diffs = service.getQueuedDiffs(docId, authorId);
+    return ok();
+  }
+
+  public Result postEdit() {
     Form<EditEvent> editEventForm = formFactory.form(EditEvent.class);
     try {
       EditEvent event = editEventForm.bindFromRequest(request()).get();

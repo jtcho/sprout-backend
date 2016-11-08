@@ -2,5 +2,6 @@
 # This file defines all of the application routes. Higher priority routes are listed first.
 # ~ ~ ~
 
-GET     /api/rand           @edu.upenn.sprout.controllers.RandomController.random()
-POST    /api/edit           @edu.upenn.sprout.controllers.EditController.handleEditEvent()
+GET     /api/rand                       @edu.upenn.sprout.controllers.RandomController.random()
+POST    /api/edit                       @edu.upenn.sprout.controllers.EditController.postEdit()
+GET     /api/fetch/:docId/:authorId     @edu.upenn.sprout.controllers.EditController.getEdits(docId, authorId)
