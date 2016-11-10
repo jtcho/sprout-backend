@@ -1,8 +1,6 @@
 package edu.upenn.sprout.controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.sksamuel.diffpatch.DiffMatchPatch;
 import edu.upenn.sprout.api.models.Diff;
 import edu.upenn.sprout.api.models.EditEvent;
 import edu.upenn.sprout.services.DocumentDiffPatchService;

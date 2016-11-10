@@ -17,16 +17,18 @@ repositories {
 }
 
 dependencies {
-//  play "org.webjars:google-diff-match-patch:20121119"
   play "com.sksamuel.diff:diff:1.1.11"
   play "com.fasterxml.uuid:java-uuid-generator:3.1.4"
   play "org.apache.kafka:kafka_2.10:0.10.0.1" exclude module: 'slf4j-log4j12'
   play "com.typesafe.play:play-jdbc-api_2.11:2.5.9"
   play "com.typesafe.play:play-logback_2.11:2.5.9"
   play "com.typesafe.play:play-java_2.11:2.5.9"
+  play "com.typesafe.play:play-ebean_2.11:3.1.0"
+  play "com.typesafe.play:filters-helpers_2.11:2.5.9"
   play "ch.qos.logback:logback-classic:1.1.7"
   play "junit:junit:4.12"
   play "org.mockito:mockito-all:1.10.19"
+  play "org.postgresql:postgresql:9.4.1211.jre7"
 }
 
 model {
