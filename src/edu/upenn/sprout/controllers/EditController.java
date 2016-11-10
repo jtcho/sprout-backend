@@ -40,6 +40,7 @@ public class EditController extends Controller {
         diffs.stream().map(Diff::encode).forEach(encodedDiffs::add);
         return ok(encodedDiffs);
       } catch (IllegalArgumentException e) {
+        LOG.info("Caught illegal argument exception encoding diffs: " + e.toString());
         return badRequest(e.getMessage());
       }
     } else {
@@ -54,7 +55,8 @@ public class EditController extends Controller {
       service.enqueueShadowEdit(event);
       return ok();
     } catch (IllegalStateException e) {
-      return badRequest();
+      LOG.info("Caught illegal state exception enqueueing a new edit event: " + e.toString());
+      return badRequest(e.getMessage());
     }
   }
 
