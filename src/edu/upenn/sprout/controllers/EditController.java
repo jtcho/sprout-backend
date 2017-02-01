@@ -33,7 +33,7 @@ public class EditController extends Controller {
 
   public Result getEdits(String docId, String authorId) {
     if (service.isValid(docId)) {
-      LOG.info("Fetching queued edits for document [" + docId + "] for user " + authorId + ".");
+      LOG.debug("Fetching queued edits for document [" + docId + "] for user " + authorId + ".");
       try {
         List<Diff> diffs = service.getQueuedDiffs(docId, authorId);
         ArrayNode encodedDiffs = Json.newArray();

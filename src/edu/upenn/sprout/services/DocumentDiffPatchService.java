@@ -65,7 +65,7 @@ public class DocumentDiffPatchService {
 
     // TODO Please do delete these... just for sample testing.
     DocumentStore exampleStore = new DocumentStore();
-    Document masterCopy = new Document("pineapple", 0, "TITLE", "barbaz");
+    Document masterCopy = new Document("pineapple", 0, "TITLE", "");
     exampleStore.registerUser("jtcho", masterCopy);
     exampleStore.registerUser("igorpo", masterCopy);
     shadowStores.put("pineapple", exampleStore);
@@ -158,6 +158,7 @@ public class DocumentDiffPatchService {
     Document updatedCopy = new Document(masterCopy.getId(), masterCopy.getRevisionNumber() + 1, masterCopy.getTitle(), results.getFirst());
     LOG.info("Applied edit to " + author + "'s master copy of document [" + documentId +
         "] and got updated result: " + updatedCopy.getContent());
+    masterCopies.put(documentId, updatedCopy);
     DocumentStore documentStore = shadowStores.get(documentId);
     documentStore.enqueueChangesForClient(author, updatedCopy);
   }
@@ -169,7 +170,10 @@ public class DocumentDiffPatchService {
    * @return
    */
   public List<Diff> getQueuedDiffs(String documentId, String authorId) {
-    return DiffUtils.convertInternalDiffs(shadowStores.get(documentId).getQueuedDiffs(authorId));
+    List<DiffMatchPatch.Diff> diffs = shadowStores.get(documentId).getQueuedDiffs(authorId);
+    List<Diff> queuedDiffs = DiffUtils.convertInternalDiffs(diffs);
+    shadowStores.get(documentId).flushQueuedDiffs(authorId);
+    return queuedDiffs;
   }
 
   /**

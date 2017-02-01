@@ -49,14 +49,19 @@ public class DocumentStore {
    * @param masterCopy
    */
   public void enqueueChangesForClient(String author, Document masterCopy) {
+    Map<String, Document> updatedCopies = new HashMap<>();
     shadowCopies.keySet().stream()
         .filter(user -> ! user.equals(author))
         .map(user -> {
           Document shadowCopy = shadowCopies.get(user);
           List<Diff> diffs = DocumentDiffPatchService.makeDiffsFromText(shadowCopy.getContent(), masterCopy.getContent());
+          String updatedText = DocumentDiffPatchService.applyDiffs(diffs, shadowCopy.getContent()).getFirst();
+          Document updatedCopy = new Document(shadowCopy.getId(), shadowCopy.getRevisionNumber(), shadowCopy.getTitle(), updatedText);
+          updatedCopies.put(user, updatedCopy);
           return new Pair<>(user, diffs);
         })
         .forEach(pair -> eventsToPush.get(pair.getFirst()).addAll(pair.getSecond()));
+    updatedCopies.forEach(shadowCopies::put);
   }
 
   public List<Diff> getQueuedDiffs(String author) {
