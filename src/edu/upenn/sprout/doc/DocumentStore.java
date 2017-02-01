@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Encapsulates all of the shadow copies for a particular shared document.
@@ -20,10 +21,16 @@ public class DocumentStore {
 
   private Map<String, Document> shadowCopies;
   private Map<String, List<Diff>> eventsToPush;
+  private final String id;
 
   public DocumentStore() {
     shadowCopies = new HashMap<>();
     eventsToPush = new HashMap<>();
+    id = UUID.randomUUID().toString();
+  }
+
+  public String getId() {
+    return id;
   }
 
   public boolean isRegistered(String author) {

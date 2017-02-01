@@ -1,5 +1,6 @@
 package edu.upenn.sprout.services;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.sksamuel.diffpatch.DiffMatchPatch;
 import com.sksamuel.diffpatch.DiffMatchPatch.Patch;
 import edu.upenn.sprout.api.models.Diff;
@@ -33,24 +34,29 @@ public class DocumentDiffPatchService {
   /**
    * Maps document IDs to the master copy of the document.
    */
-  private Map<String, Document> masterCopies;
+  @VisibleForTesting
+  protected Map<String, Document> masterCopies;
   /**
    * Maps document IDs to document stores containing shadow copies.
    */
-  private Map<String, DocumentStore> shadowStores;
+  @VisibleForTesting
+  protected Map<String, DocumentStore> shadowStores;
   /**
    * Queue of shadow copy edit events to process.
    */
-  private ConcurrentLinkedQueue<InternalEditEvent> shadowEditQueue;
+  @VisibleForTesting
+  protected ConcurrentLinkedQueue<InternalEditEvent> shadowEditQueue;
   /**
    * Queue of master copy edit events to process.
    */
-  private ConcurrentLinkedQueue<InternalEditEvent> masterEditQueue;
+  @VisibleForTesting
+  protected ConcurrentLinkedQueue<InternalEditEvent> masterEditQueue;
 
   private static DiffMatchPatch dmp = new DiffMatchPatch();
 
   private static Logger LOG = LoggerFactory.getLogger(DocumentDiffPatchService.class);
 
+  @VisibleForTesting
   @Inject
   protected DocumentDiffPatchService(ApplicationLifecycle lifecycle) {
     masterCopies = new HashMap<>();
@@ -64,12 +70,34 @@ public class DocumentDiffPatchService {
     lifecycle.addStopHook(() -> CompletableFuture.runAsync(editDaemon::shutdown));
 
     // TODO Please do delete these... just for sample testing.
-    DocumentStore exampleStore = new DocumentStore();
-    Document masterCopy = new Document("pineapple", 0, "TITLE", "");
-    exampleStore.registerUser("jtcho", masterCopy);
-    exampleStore.registerUser("igorpo", masterCopy);
-    shadowStores.put("pineapple", exampleStore);
-    masterCopies.put("pineapple", masterCopy);
+//    String documentId = createNewDocumentFor("jtcho");
+//    registerNewUser("igorpo", documentId);
+  }
+
+  /**
+   * Creates a new document for a particular user.
+   *
+   * @param author the user creating the document
+   * @return the id of the created document
+   */
+  public String createNewDocumentFor(String author) {
+    DocumentStore newStore = new DocumentStore();
+    Document masterCopy = new Document(newStore.getId(), 0, "Untitled Copy", "");
+    newStore.registerUser(author, masterCopy);
+    shadowStores.put(newStore.getId(), newStore);
+    masterCopies.put(newStore.getId(), masterCopy);
+
+    return newStore.getId();
+  }
+
+  /**
+   * Registers a new user for an existing document.
+   *
+   * @param author the user to register
+   * @param documentId the id of the document
+   */
+  public void registerNewUser(String author, String documentId) {
+    shadowStores.get(documentId).registerUser(author, masterCopies.get(documentId));
   }
 
   /**
