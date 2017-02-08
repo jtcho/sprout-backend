@@ -3,7 +3,6 @@ package edu.upenn.sprout.controllers;
 import edu.upenn.sprout.api.models.ApplicationRegisterEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import play.Application;
 import play.data.Form;
 import play.data.FormFactory;
 import play.mvc.Controller;
@@ -29,6 +28,7 @@ public class ApplicationController extends Controller {
     Form<ApplicationRegisterEvent> registerEventForm = formFactory.form(ApplicationRegisterEvent.class);
     ApplicationRegisterEvent event = registerEventForm.bindFromRequest(request()).get();
     LOG.info("Registering application: " + event.getApplicationName());
+    LOG.info("App id: " + event.getApplicationID());
     return ok();
   }
 

@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 //import edu.upenn.sprout.db.DynamoDBClient;
 //import edu.upenn.sprout.db.PostgreSQLClient;
 //import edu.upenn.sprout.services.AccountService;
+import edu.upenn.sprout.services.ApplicationServiceLayer;
 import edu.upenn.sprout.services.DocumentDiffPatchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ public class SproutServiceModule extends AbstractModule {
     LOG.info("Configuring the SproutServiceModule.");
 
     bind(DocumentDiffPatchService.class).asEagerSingleton();
-//    bind(PostgreSQLClient.class).asEagerSingleton();
+    bind(ApplicationServiceLayer.class).asEagerSingleton();
   }
 
 }
