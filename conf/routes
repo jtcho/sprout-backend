@@ -7,3 +7,4 @@ POST    /api/registerApplication        @edu.upenn.sprout.controllers.Applicatio
 POST    /api/edit                       @edu.upenn.sprout.controllers.EditController.postEdit()
 GET     /api/fetch/:docId/:authorId     @edu.upenn.sprout.controllers.EditController.getEdits(docId, authorId)
 POST    /api/createDoc                  @edu.upenn.sprout.controllers.DocumentCreationController.createDocument()
+POST    /api/registerNewUser            @edu.upenn.sprout.controllers.RegisterUserController.registerNewUser()

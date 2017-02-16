@@ -204,6 +204,10 @@ public class DocumentDiffPatchService {
     return queuedDiffs;
   }
 
+  public Document masterCopyForDocumentWithID(String ID) {
+    return masterCopies.get(ID);
+  }
+
   /**
    * Enqueues an edit event to be processed by the shadow copy handler.
    */
