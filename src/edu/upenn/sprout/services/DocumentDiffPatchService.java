@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -52,6 +53,9 @@ public class DocumentDiffPatchService {
   @VisibleForTesting
   protected ConcurrentLinkedQueue<InternalEditEvent> masterEditQueue;
 
+  @VisibleForTesting
+  protected ConcurrentHashMap<String, String> usersMap;
+
   private static DiffMatchPatch dmp = new DiffMatchPatch();
 
   private static Logger LOG = LoggerFactory.getLogger(DocumentDiffPatchService.class);
@@ -61,6 +65,7 @@ public class DocumentDiffPatchService {
   protected DocumentDiffPatchService(ApplicationLifecycle lifecycle) {
     masterCopies = new HashMap<>();
     shadowStores = new HashMap<>();
+    usersMap = new ConcurrentHashMap<>();
     shadowEditQueue = new ConcurrentLinkedQueue<>();
     masterEditQueue = new ConcurrentLinkedQueue<>();
 
@@ -88,6 +93,20 @@ public class DocumentDiffPatchService {
     masterCopies.put(newStore.getId(), masterCopy);
 
     return newStore.getId();
+  }
+
+  /**
+   * Add a user to the app
+   * @param user user ID
+   * @param encPassword encrypted hashed password, we will assume it is empty for now always
+   * @return the user id added to system
+   */
+  public String addUserToApp(String user, String encPassword) {
+    if (!usersMap.containsKey(user)) {
+      usersMap.put(user, encPassword);
+      return user;
+    }
+    return null;
   }
 
   /**
