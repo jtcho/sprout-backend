@@ -32,8 +32,12 @@ public class RegisterUserController extends Controller {
         Form<RegisterUserEvent> registerUserEventForm = formFactory.form(RegisterUserEvent.class);
         try {
             RegisterUserEvent rue = registerUserEventForm.bindFromRequest(request()).get();
-            service.registerNewUser(rue.getUserID(), rue.getDocumentID());
-            Document masterDoc = service.masterCopyForDocumentWithID(rue.getUserID());
+            String userID = rue.getUserID();
+            if (!service.userExists(userID)) {
+                return unauthorized("User is not valid");
+            }
+            service.registerNewUser(userID, rue.getDocumentID());
+            Document masterDoc = service.masterCopyForDocumentWithID(userID);
             return ok(toJson(masterDoc));
         } catch (Exception e) {
             LOG.info("Caught an exception while registering user to a document:" + e.toString());

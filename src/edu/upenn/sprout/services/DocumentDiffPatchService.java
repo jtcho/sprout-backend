@@ -102,11 +102,20 @@ public class DocumentDiffPatchService {
    * @return the user id added to system
    */
   public String addUserToApp(String user, String encPassword) {
-    if (!usersMap.containsKey(user)) {
+    if (!userExists(user)) {
       usersMap.put(user, encPassword);
       return user;
     }
     return null;
+  }
+
+  /**
+   * Determines if a user has registered to the app
+   * @param user user id
+   * @return true if user is valid, false otherwise
+   */
+  public boolean userExists(String user) {
+    return usersMap.containsKey(user);
   }
 
   /**
