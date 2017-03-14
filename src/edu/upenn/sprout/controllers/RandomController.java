@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import javax.inject.Inject;
-
 import static play.libs.Json.toJson;
 
 /**
